@@ -7,7 +7,7 @@ ifeq ("${GOARCH}", "")
 endif
 
 ifeq ("${OUTPUT_FILE}", "")
-	OUTPUT_FILE:=godown
+	OUTPUT_FILE:=socks
 endif
 
 ifneq ("${VERSION}", "")
@@ -30,7 +30,7 @@ test-race:
 	go test -race -coverprofile=coverage.txt -covermode=atomic
 
 package:
-	tar -czvf godown${VERSION}_${GOOS}_${GOARCH}.tar.gz ${OUTPUT_FILE} LICENSE README.md
+	tar -czvf socks${VERSION}_${GOOS}_${GOARCH}.tar.gz ${OUTPUT_FILE} LICENSE README.md
 
 check:
 	@go vet ./...

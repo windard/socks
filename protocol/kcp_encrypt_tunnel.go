@@ -51,22 +51,6 @@ func RelayTCPToEncryptedKCP(client net.Conn) {
 	Socks5Forward(client, remote)
 }
 
-func RelayEncryptedKCPToTCP(client net.Conn) {
-
-	remote, err := net.Dial("tcp", GlobalConfig.RemoteAddr)
-	if err != nil {
-		log.Printf("dial with kcp error:" + err.Error())
-		client.Close()
-		return
-	}
-
-	log.Printf("receive from:[%s]%s relay to:[%s]%s",
-		client.RemoteAddr().Network(), client.RemoteAddr().String(),
-		remote.RemoteAddr().Network(), remote.RemoteAddr().String(),
-	)
-	StreamForward(client, remote)
-}
-
 func KCPEncryptedRemoteServe() {
 	// 高级的加密算法+socks5代理转发
 	key := pbkdf2.Key(GlobalConfig.SecretKey, GlobalConfig.SecretSalt, 1024, 32, sha1.New)

@@ -24,7 +24,6 @@ install:
 script:
   - make prepare
   - make check
-  - make lint
   - make test-race
   - make clean
 
