@@ -1,4 +1,4 @@
-package high_performance_networks
+package protocol
 
 import (
 	"bytes"
@@ -6,10 +6,11 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	stream "github.com/nknorg/encrypted-stream"
 	"io"
 	"log"
 	"net"
+
+	stream "github.com/nknorg/encrypted-stream"
 )
 
 type Socks5UserAuthInfo struct {

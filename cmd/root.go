@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/windard/precious/socks/cmd/kcp"
+	"github.com/windard/socks/cmd/kcp"
 
 	"github.com/spf13/cobra"
 )
 
 const (
-	Version = "v0.1.1"
+	Version = "v0.1.2"
 )
 
 var (

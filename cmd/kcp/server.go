@@ -21,8 +21,8 @@ var (
 
 	KcpCmd = &cobra.Command{
 		Use:   "kcp",
-		Short: "kcp protocol implement echo server.",
-		Long: `kcp protocol implement echo server.
+		Short: "kcp protocol implement echo server",
+		Long: `kcp protocol implement echo server
 see https://github.com/skywind3000/kcp.
 no output if in wrong protocol or wrong secretKey.
 `,

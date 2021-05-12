@@ -1,0 +1,35 @@
+language: go
+go_import_path: github.com/windard/socks
+
+matrix:
+  fast_finish: true
+  include:
+  - go: 1.13.x
+  - go: 1.14.x
+  - go: 1.15.x
+  - go: 1.16.x
+  - go: master
+
+git:
+  depth: 10
+
+before_install:
+  - if [[ "${GO111MODULE}" = "on" ]]; then mkdir "${HOME}/go"; export GOPATH="${HOME}/go"; fi
+  - go get -u golang.org/x/lint/golint
+
+install:
+  - if [[ "${GO111MODULE}" = "on" ]]; then go mod download; fi
+  - if [[ "${GO111MODULE}" = "on" ]]; then export PATH="${GOPATH}/bin:${GOROOT}/bin:${PATH}"; fi
+
+script:
+  - make prepare
+  - make check
+  - make lint
+  - make test-race
+  - make clean
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email: false

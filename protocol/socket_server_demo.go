@@ -1,4 +1,4 @@
-package high_performance_networks
+package protocol
 
 import (
 	"fmt"
