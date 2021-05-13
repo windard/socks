@@ -5,8 +5,10 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -28,10 +30,73 @@ var (
 				os.Exit(1)
 			}
 
-			ChatroomServer(listenAddr)
+			if role == "client" {
+				ChatroomClient(listenAddr)
+			} else {
+				ChatroomServer(listenAddr)
+			}
 		},
 	}
 )
+
+func ChatroomClient(listenAddr string) {
+
+	dstConn, err := net.Dial("tcp", listenAddr)
+	if err != nil {
+		fmt.Printf("Connect failed: %v\n", err)
+		return
+	}
+	defer dstConn.Close()
+
+	codeChan := make(chan int)
+	singleChan := make(chan os.Signal)
+
+	go func(conn net.Conn) {
+		for {
+			var input string
+			fmt.Printf("【%s】", conn.LocalAddr())
+
+			_, err = fmt.Scanln(&input)
+			if err != nil {
+				fmt.Printf("Read failed: %v\n", err)
+				codeChan <- 1
+				return
+			}
+			_, err = conn.Write(append([]byte(input), '\n'))
+			if err != nil {
+				fmt.Printf("Send failed: %v\n", err)
+				codeChan <- 1
+				return
+			}
+		}
+	}(dstConn)
+
+	go func(conn net.Conn) {
+		message := make([]byte, 1024)
+		for {
+			n, err := dstConn.Read(message)
+			if err != nil {
+				fmt.Printf("Receive failed: %v\n", err)
+				codeChan <- 1
+				return
+			}
+			if n == 0 {
+				continue
+			}
+			fmt.Print("\r")
+			fmt.Print(string(message[:n]))
+			fmt.Printf("【%s】", dstConn.LocalAddr())
+		}
+	}(dstConn)
+
+	signal.Notify(singleChan, syscall.SIGTERM, syscall.SIGINT)
+	select {
+	case <-codeChan:
+		os.Exit(0)
+	case <-singleChan:
+		os.Exit(0)
+	}
+}
 
 func ChatroomServer(listenAddr string) {
 	server, err := net.Listen("tcp", listenAddr)
@@ -92,4 +157,5 @@ func ChatroomProcess(client net.Conn) {
 
 func init() {
 	RootCmd.AddCommand(chatCmd)
+	chatCmd.Flags().StringVarP(&role, "role", "r", "", "chatroom role.(client|server)")
 }
