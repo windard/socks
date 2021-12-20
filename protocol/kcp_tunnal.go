@@ -32,8 +32,11 @@ func KCPLocalServe() {
 			log.Printf("Accept failed: %v\n", err)
 			continue
 		}
-
-		go RelayTCPToKCP(client)
+		if len(GlobalConfig.SecretKey) == 0 {
+			go PureRelayTCPToKCP(client)
+		} else {
+			go RelayTCPToKCP(client)
+		}
 	}
 }
 
@@ -53,6 +56,22 @@ func KCPLocalCompatSocks5Serve() {
 
 		go RelayTCPToEncryptedKCP(client)
 	}
+}
+
+func PureRelayTCPToKCP(client net.Conn) {
+	// 没有任何加密的转发TCP至KCP
+	block, _ := kcp.NewNoneBlockCrypt(nil)
+	sess, err := kcp.DialWithOptions(GlobalConfig.RemoteAddr, block, 10, 3)
+	if err != nil {
+		log.Printf("dial with kcp error:" + err.Error())
+		client.Close()
+		return
+	}
+	log.Printf("receive from:[%s]%s pure relay to:[%s]%s",
+		client.RemoteAddr().Network(), client.RemoteAddr().String(),
+		sess.RemoteAddr().Network(), sess.RemoteAddr().String(),
+	)
+	StreamForward(client, sess)
 }
 
 func RelayTCPToKCP(client net.Conn) {
@@ -75,6 +94,22 @@ func RelayTCPToKCP(client net.Conn) {
 	log.Printf("receive from:[%s]%s relay to:[%s]%s",
 		client.RemoteAddr().Network(), client.RemoteAddr().String(),
 		sess.RemoteAddr().Network(), sess.RemoteAddr().String(),
+	)
+	StreamForward(client, remote)
+}
+
+func PureRelayKCPToTCP(client net.Conn) {
+	// 没有任何加密的转发 KCP 至 TCP
+	remote, err := net.Dial("tcp", GlobalConfig.RemoteAddr)
+	if err != nil {
+		log.Printf("dial with kcp error:" + err.Error())
+		client.Close()
+		return
+	}
+
+	log.Printf("receive from:[%s]%s pure relay to:[%s]%s",
+		client.RemoteAddr().Network(), client.RemoteAddr().String(),
+		remote.RemoteAddr().Network(), remote.RemoteAddr().String(),
 	)
 	StreamForward(client, remote)
 }
@@ -116,8 +151,11 @@ func KCPRemoteServe() {
 			log.Printf("Accept failed: %v\n", err)
 			continue
 		}
-
-		go RelayKCPToTCP(client)
+		if len(GlobalConfig.SecretKey) == 0 {
+			go PureRelayKCPToTCP(client)
+		} else {
+			go RelayKCPToTCP(client)
+		}
 	}
 }
 

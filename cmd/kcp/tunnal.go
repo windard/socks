@@ -31,25 +31,23 @@ you can use compatSocks5 to compat with kcp socks5 connection
 				os.Exit(1)
 			}
 
-			if secretKey == "" {
-				fmt.Println("Please specify a secret.")
-				os.Exit(1)
+			if secretKey != "" {
+				protocol.GlobalConfig.SecretKey = []byte(fmt.Sprintf("%x", md5.Sum([]byte(secretKey))))
 			}
 
 			protocol.GlobalConfig.ListenAddr = listenAddr
 			protocol.GlobalConfig.RemoteAddr = remoteAddr
-			protocol.GlobalConfig.SecretKey = []byte(fmt.Sprintf("%x", md5.Sum([]byte(secretKey))))
 			protocol.GlobalConfig.SecretSalt = []byte(fmt.Sprintf("%x", sha1.Sum([]byte(secretKey))))
 
 			if role == "local" {
-				fmt.Printf("[%s][tcp]Connect to:%s\n", role, listenAddr)
+				fmt.Printf("[%s][tcp]Listen to:%s\n", role, listenAddr)
 				if compatSocks5 {
 					protocol.KCPLocalCompatSocks5Serve()
 				} else {
 					protocol.KCPLocalServe()
 				}
 			} else {
-				fmt.Printf("[%s][kcp]Listen on:%s\n", role, listenAddr)
+				fmt.Printf("[server][kcp]Listen on:%s\n", listenAddr)
 				protocol.KCPRemoteServe()
 			}
 
@@ -67,5 +65,5 @@ func init() {
 	kcpTunnelCmd.MarkFlagRequired("localAddr")
 	kcpTunnelCmd.MarkFlagRequired("remoteAddr")
 	kcpTunnelCmd.MarkFlagRequired("role")
-	kcpTunnelCmd.MarkFlagRequired("secretKey")
+	//kcpTunnelCmd.MarkFlagRequired("secretKey")
 }
